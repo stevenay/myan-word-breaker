@@ -98,7 +98,6 @@ class WordSegment:
 
                 # if the maximum word length isn't reached yet, add a character to the last word
                 if wordlen < maxlen:
-                    # print(combos)
                     longest_word = combos[0][-1]
                     word = combos[0][-1] + char
 
@@ -173,7 +172,6 @@ class WordSegment:
                         # calculate positive collocation strength
                         if (i < len(syllable_word) - 1):
                             mutual_info += self._cal_mutual_info(syllable_word[i], syllable_word[i + 1])
-                            # print(syllable_word[i] + syllable_word[i + 1] + " , Mutual Info " + str(mutual_info))
                         i += 1
 
                     # calculating left negative strength
@@ -182,7 +180,6 @@ class WordSegment:
                         # calculate negative left collocation strength
                         left_last_syllable = syllable_sent[index - 1][-1]
                         mutual_info -= self._cal_mutual_info(left_last_syllable, syllable_word[0])
-                        # print(left_last_syllable + syllable_word[0] + " , Mutual Info " + str(cal_mutual_info(left_last_syllable, syllable_word[0])))
 
                     # calculating right negative strength
                     # check next item exists
@@ -190,11 +187,8 @@ class WordSegment:
                         # calculate negative right collocation strength
                         right_last_syllable = syllable_sent[index + 1][0]
                         mutual_info -= self._cal_mutual_info(syllable_word[-1], right_last_syllable)
-                        # print(syllable_word[-1] + right_last_syllable + " , Mutual Info " + str(cal_mutual_info(syllable_word[-1], right_last_syllable)))
 
                 sentence_collocation_strength += mutual_info
-                # print(syllable_word)
-                # print(mutual_info)
 
             syllable_collocation_strength.append([sentence_collocation_strength, filtering_solutions[sent_index]])
 
@@ -238,24 +232,22 @@ class WordSegment:
             self._possible_combos = self._make_combinations(input, self._maxlen)
         elif (segmentation_method == self.SegmentationMethod.sub_word_possibility):
             combo = self._left_to_right_segment(input, self._maxlen)
-            print(combo)
+            self._possible_combos.append(combo)
+            self._make_sub_word_combinations(input, combo, len(combo))
 
-        #     self._possible_combos.append(combo)
-        #     self._make_sub_word_combinations(input, combo, len(combo))
-        #
-        # min_filtered_combos = self.filter_minimum_combination(self._possible_combos)
-        # if (len(min_filtered_combos) > 1):
-        #     syllable_collocation_strengths = self._calculate_sentence_collocation_strength(min_filtered_combos)
-        #     strongest = 0
-        #     strongest_sentence = ''
-        #     for comb in syllable_collocation_strengths:
-        #         strength = comb[0]
-        #         if (strength > strongest):
-        #             strongest = strength
-        #             strongest_sentence = comb[1]
-        #     return strongest_sentence
-        # else:
-        #     return min_filtered_combos[0]
+        min_filtered_combos = self.filter_minimum_combination(self._possible_combos)
+        if len(min_filtered_combos) > 1:
+            syllable_collocation_strengths = self._calculate_sentence_collocation_strength(min_filtered_combos)
+            strongest = 0
+            strongest_sentence = ''
+            for comb in syllable_collocation_strengths:
+                strength = comb[0]
+                if (strength > strongest):
+                    strongest = strength
+                    strongest_sentence = comb[1]
+            return strongest_sentence
+        else:
+            return min_filtered_combos[0]
 
     def normalize_break(self, input_text, encoding, segmentation_method=SegmentationMethod.all_possible_combination):
         # if it is zawgyi, converts to Unicode
@@ -274,13 +266,3 @@ class WordSegment:
                 outputs.append(segmented_sentence)
 
         return outputs
-
-# declare input and remove spaces
-# input_text = u"သဘာဝဟာသဘာဝပါ";
-# # # normalize
-# input_text = input_text.replace(u" ", "")
-# inputs = input_text.split("။")
-# wordSegmenter = WordSegment()
-# for inp in inputs:
-#     if inp:
-#         print(wordSegmenter.break_words(inp))
