@@ -1,9 +1,0 @@
-LICENSE.txt
-MANIFEST.in
-README.md
-setup.cfg
-setup.py
-myan_word_breaker.egg-info/PKG-INFO
-myan_word_breaker.egg-info/SOURCES.txt
-myan_word_breaker.egg-info/dependency_links.txt
-myan_word_breaker.egg-info/top_level.txt
