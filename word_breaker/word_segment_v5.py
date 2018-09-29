@@ -68,12 +68,13 @@ class WordSegment:
                 word = ''.join(seq[offset:chunk])
 
                 # check in dictionary
-                if self._check_in_dicts(word):
+                if self._check_in_dicts(word) or i == 1:
                     # found word
                     combo.append(word)
                     offset += i
                     length -= i
                     break
+
         return combo
 
     def _make_combinations(self, seq, maxlen):
@@ -128,15 +129,15 @@ class WordSegment:
     def _cal_mutual_info(self, sya1, sya2):
         # calculate
         # calculating unigram probability
-        occurence_of_syllable_1 = self.mypos_corpus.count(sya1)
-        probability_of_syllable_1 = occurence_of_syllable_1 / self.total_unigram_count
+        occurence_of_syllable_1 = self._mypos_corpus.count(sya1)
+        probability_of_syllable_1 = occurence_of_syllable_1 / self._total_unigram_count
 
-        occurence_of_syllable_2 = self.mypos_corpus.count(sya2)
-        probability_of_syllable_2 = occurence_of_syllable_2 / self.total_unigram_count
+        occurence_of_syllable_2 = self._mypos_corpus.count(sya2)
+        probability_of_syllable_2 = occurence_of_syllable_2 / self._total_unigram_count
 
         # calculating bigram probability
-        occurence_of_bigram = self.mypos_corpus.count(sya1 + sya2)
-        probability_of_bigram = occurence_of_bigram / self.total_bigram_count
+        occurence_of_bigram = self._mypos_corpus.count(sya1 + sya2)
+        probability_of_bigram = occurence_of_bigram / self._total_bigram_count
 
         if (probability_of_bigram == 0):
             return 0
@@ -153,7 +154,7 @@ class WordSegment:
 
         return min_filtering_solutions
 
-    def calculate_sentence_collocation_strength(self, filtering_solutions):
+    def _calculate_sentence_collocation_strength(self, filtering_solutions):
         syllable_sents = []
 
         for solution in filtering_solutions:
@@ -171,7 +172,7 @@ class WordSegment:
                     while (i < len(syllable_word)):
                         # calculate positive collocation strength
                         if (i < len(syllable_word) - 1):
-                            mutual_info += self.cal_mutual_info(syllable_word[i], syllable_word[i + 1])
+                            mutual_info += self._cal_mutual_info(syllable_word[i], syllable_word[i + 1])
                             # print(syllable_word[i] + syllable_word[i + 1] + " , Mutual Info " + str(mutual_info))
                         i += 1
 
@@ -180,7 +181,7 @@ class WordSegment:
                     if index - 1 >= 0:
                         # calculate negative left collocation strength
                         left_last_syllable = syllable_sent[index - 1][-1]
-                        mutual_info -= self.cal_mutual_info(left_last_syllable, syllable_word[0])
+                        mutual_info -= self._cal_mutual_info(left_last_syllable, syllable_word[0])
                         # print(left_last_syllable + syllable_word[0] + " , Mutual Info " + str(cal_mutual_info(left_last_syllable, syllable_word[0])))
 
                     # calculating right negative strength
@@ -188,7 +189,7 @@ class WordSegment:
                     if (index + 1 < len(syllable_sent)):
                         # calculate negative right collocation strength
                         right_last_syllable = syllable_sent[index + 1][0]
-                        mutual_info -= self.cal_mutual_info(syllable_word[-1], right_last_syllable)
+                        mutual_info -= self._cal_mutual_info(syllable_word[-1], right_last_syllable)
                         # print(syllable_word[-1] + right_last_syllable + " , Mutual Info " + str(cal_mutual_info(syllable_word[-1], right_last_syllable)))
 
                 sentence_collocation_strength += mutual_info
@@ -220,7 +221,7 @@ class WordSegment:
                     result.extend(self._left_to_right_segment(input[pointer + i:], self._maxlen))
 
                     if (len(result) <= shortest_length):
-                        self.possible_combos.append(result)
+                        self._possible_combos.append(result)
                         cur_pointer = pointer + i
                         self._make_sub_word_combinations(input, result, shortest_length, n + 1, cur_pointer)
 
@@ -235,24 +236,26 @@ class WordSegment:
         # Compose all the segmentations
         if (segmentation_method == self.SegmentationMethod.all_possible_combination):
             self._possible_combos = self._make_combinations(input, self._maxlen)
-        else:
+        elif (segmentation_method == self.SegmentationMethod.sub_word_possibility):
             combo = self._left_to_right_segment(input, self._maxlen)
-            self._possible_combos.append(combo)
-            self._make_sub_word_combinations(input, combo, len(combo))
+            print(combo)
 
-        min_filtered_combos = self.filter_minimum_combination(self._possible_combos)
-        if (len(min_filtered_combos) > 1):
-            syllable_collocation_strengths = self.cal_sentence_collocation_strength(min_filtered_combos)
-            strongest = 0
-            strongest_sentence = ''
-            for comb in syllable_collocation_strengths:
-                strength = comb[0]
-                if (strength > strongest):
-                    strongest = strength
-                    strongest_sentence = comb[1]
-            return strongest_sentence
-        else:
-            return min_filtered_combos[0]
+        #     self._possible_combos.append(combo)
+        #     self._make_sub_word_combinations(input, combo, len(combo))
+        #
+        # min_filtered_combos = self.filter_minimum_combination(self._possible_combos)
+        # if (len(min_filtered_combos) > 1):
+        #     syllable_collocation_strengths = self._calculate_sentence_collocation_strength(min_filtered_combos)
+        #     strongest = 0
+        #     strongest_sentence = ''
+        #     for comb in syllable_collocation_strengths:
+        #         strength = comb[0]
+        #         if (strength > strongest):
+        #             strongest = strength
+        #             strongest_sentence = comb[1]
+        #     return strongest_sentence
+        # else:
+        #     return min_filtered_combos[0]
 
     def normalize_break(self, input_text, encoding, segmentation_method=SegmentationMethod.all_possible_combination):
         # if it is zawgyi, converts to Unicode
