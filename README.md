@@ -46,6 +46,7 @@ The first one might be a little bit better to provide more precise result while 
 
 ## Credit
 [Word segmentation for the Myanmar language](https://dl.acm.org/citation.cfm?id=1411817)
+[MyParser for Syllabification](https://github.com/thantthet/MyanmarParser-Py)
 
 
 ## License
