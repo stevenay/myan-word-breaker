@@ -2,7 +2,7 @@
 Word segmentation tool for Myanmar sentence.
 
 ## Demo
-Try this library at `[flask-py-word-breaker](https://flask-py-word-breaker.herokuapp.com/)`
+Try this library at [flask-py-word-breaker](https://flask-py-word-breaker.herokuapp.com/)
 
 ## Introduction
 This is the **word segmentation tool** for Myanmar text. Word segmentation is the process of determining word boundaries in a piece of text.
