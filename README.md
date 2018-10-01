@@ -18,6 +18,8 @@ The library supports two ways to find the possible combinations
 
 The first one might be a little bit better to provide more precise result while the later one has huge improvement in runtime performance.
 
+To validate the evaluate these possible combinations, the library uses **Bigram Collocation Strength Statistical Approach** according to described in the research paper.
+
 ## Usage
 
     # coding=utf8
