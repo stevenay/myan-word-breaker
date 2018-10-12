@@ -49,7 +49,9 @@ To validate the evaluate these possible combinations, the library uses **Bigram 
 ## Credit
 - [Word segmentation for the Myanmar language](https://dl.acm.org/citation.cfm?id=1411817)
 - [MyParser for Syllabification](https://github.com/thantthet/MyanmarParser-Py)
-
+- [Text Corpus from Ko YeKyawThu's myPOS Repo](https://github.com/ye-kyaw-thu/myPOS)
+- [Dictionary from MCFNLP](https://github.com/mcfnlp/Head-Word)
+- [Stop Words from SwanHtet's Burmese data Repo)(https://github.com/swanhtet1992/myanmar-data)
 
 ## License
 [MIT](./LICENSE)

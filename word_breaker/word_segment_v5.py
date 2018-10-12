@@ -6,7 +6,6 @@ from word_breaker.myparser import MyParser
 
 import os
 
-
 class WordSegment:
     # Word Segmentation Ways
     SegmentationMethod = Enum('SegmentationMethod', 'all_possible_combination sub_word_possibility')
@@ -32,6 +31,7 @@ class WordSegment:
 
     m = MyParser()
 
+    # check word include in dictionary
     def _check_in_dicts(self, word):
         found = True;
 
@@ -53,6 +53,7 @@ class WordSegment:
 
         return found;
 
+    # simple left to right maximum longest matching
     def _left_to_right_segment(self, seq, maxlen):
         length = len(seq)
         offset = 0
@@ -77,10 +78,13 @@ class WordSegment:
 
         return combo
 
+    # make all possible word combinations
     def _make_combinations(self, seq, maxlen):
         # memo is a dict of {length_of_last_word: list_of_combinations}
         memo = defaultdict(list)
-        memo[1] = [[seq[0]]]  # put the first character into the memo
+
+        # put the first character into the memo
+        memo[1] = [[seq[0]]]
 
         seq_iter = iter(seq)
         next(seq_iter)  # skip the first character
@@ -106,13 +110,13 @@ class WordSegment:
                         combo[-1] = word  # overwrite the last word with a longer one
                         newcombos.append(combo)
 
-                if (index == last_index or wordlen + 1 == maxlen):
-                    if (word and not self._check_in_dicts(word)):
+                if index == last_index or wordlen + 1 == maxlen:
+                    if word and not self._check_in_dicts(word):
                         word = ''
                         del new_memo[wordlen + 1]
 
-                if (longest_word and not longest_word in seq):
-                    if (not self._check_in_dicts(longest_word)):
+                if longest_word and not longest_word in seq:
+                    if not self._check_in_dicts(longest_word):
                         longest_word = ''
                         del new_memo[1][len(combos) * -1:]
 
@@ -125,8 +129,8 @@ class WordSegment:
 
         return combos
 
+    # calulate mutual information of two syllables
     def _cal_mutual_info(self, sya1, sya2):
-        # calculate
         # calculating unigram probability
         occurence_of_syllable_1 = self._mypos_corpus.count(sya1)
         probability_of_syllable_1 = occurence_of_syllable_1 / self._total_unigram_count
@@ -138,7 +142,7 @@ class WordSegment:
         occurence_of_bigram = self._mypos_corpus.count(sya1 + sya2)
         probability_of_bigram = occurence_of_bigram / self._total_bigram_count
 
-        if (probability_of_bigram == 0):
+        if probability_of_bigram == 0:
             return 0
 
         return log(probability_of_bigram / float(probability_of_syllable_1 * probability_of_syllable_2), 2)
@@ -164,14 +168,14 @@ class WordSegment:
             sentence_collocation_strength = 0
             for index, syllable_word in enumerate(syllable_sent):
                 i = 0
-                mutual_info = 0
+                word_mutual_info = 0
                 if (len(syllable_word) > 1):
-                    # calculate only if syllable_word is bigram
-                    # "calculating positive strength"
+                    # calculate only if syllable_word is at least longer than unigram
+                    # calculating positive strength
                     while (i < len(syllable_word)):
                         # calculate positive collocation strength
                         if (i < len(syllable_word) - 1):
-                            mutual_info += self._cal_mutual_info(syllable_word[i], syllable_word[i + 1])
+                            word_mutual_info += self._cal_mutual_info(syllable_word[i], syllable_word[i + 1])
                         i += 1
 
                     # calculating left negative strength
@@ -179,16 +183,16 @@ class WordSegment:
                     if index - 1 >= 0:
                         # calculate negative left collocation strength
                         left_last_syllable = syllable_sent[index - 1][-1]
-                        mutual_info -= self._cal_mutual_info(left_last_syllable, syllable_word[0])
+                        word_mutual_info -= self._cal_mutual_info(left_last_syllable, syllable_word[0])
 
                     # calculating right negative strength
                     # check next item exists
                     if (index + 1 < len(syllable_sent)):
                         # calculate negative right collocation strength
                         right_last_syllable = syllable_sent[index + 1][0]
-                        mutual_info -= self._cal_mutual_info(syllable_word[-1], right_last_syllable)
+                        word_mutual_info -= self._cal_mutual_info(syllable_word[-1], right_last_syllable)
 
-                sentence_collocation_strength += mutual_info
+                sentence_collocation_strength += word_mutual_info
 
             syllable_collocation_strength.append([sentence_collocation_strength, filtering_solutions[sent_index]])
 
@@ -240,11 +244,13 @@ class WordSegment:
             syllable_collocation_strengths = self._calculate_sentence_collocation_strength(min_filtered_combos)
             strongest = 0
             strongest_sentence = ''
+            # comb => [strength , sentence]
             for comb in syllable_collocation_strengths:
                 strength = comb[0]
                 if (strength > strongest):
                     strongest = strength
                     strongest_sentence = comb[1]
+
             return strongest_sentence
         else:
             return min_filtered_combos[0]
